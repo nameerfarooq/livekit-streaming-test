@@ -3,10 +3,12 @@ import {
   GridLayout,
   ParticipantTile,
   RoomAudioRenderer,
-  useTracks,
+  // useTracks,
   RoomContext,
   Chat,
   VideoConference,
+  useParticipants,
+  useChat,
 } from "@livekit/components-react";
 import { Room, Track } from "livekit-client";
 import "@livekit/components-styles";
@@ -21,6 +23,8 @@ const serverUrl = "wss://solo-9dwvrt7c.livekit.cloud";
 export default function App() {
   const [token, settoken] = useState("");
   const [participantName, setparticipantName] = useState("");
+  const [showVideo, setshowVideo] = useState(false);
+  const [isCreator, setisCreator] = useState(false);
   const [room] = useState(
     () =>
       new Room({
@@ -39,7 +43,7 @@ export default function App() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ participantName }),
+          body: JSON.stringify({ participantName, isCreator }),
         });
 
         console.log("Res 1 :", res);
@@ -57,14 +61,23 @@ export default function App() {
     let mounted = true;
     const connect = async () => {
       if (mounted && token) {
-        await room.connect(serverUrl, token, {
-          audio: true,
-          video: true,
-        });
+        await room
+          .connect(serverUrl, token, {
+            audio: true,
+            video: true,
+          })
+          .then(() => {
+            setshowVideo(true);
+          })
+          .catch(() => {
+            setshowVideo(false);
+          });
       }
     };
 
     connect();
+
+    console.log("room events : ", room.eventNames);
 
     return () => {
       mounted = false;
@@ -77,21 +90,31 @@ export default function App() {
   // }, []);
   return (
     <>
-      {(room.state === "connected" || room.state === "connecting") && (
+      {showVideo ? (
         <RoomContext.Provider value={room} connect={true}>
           <div data-lk-theme="default" style={{ height: "100vh" }}>
             {/* Your custom component with basic video conferencing functionality. */}
-            {/* <MyVideoConference /> */}
-            <VideoConference />
+            <MyVideoConference />
+            {/* <VideoConference /> */}
           </div>
         </RoomContext.Provider>
+      ) : (
+        <>
+          <input
+            placeholder="Enter your name"
+            type="text"
+            onChange={(e) => setparticipantName(e.target.value)}
+            value={participantName}
+          />
+          <button onClick={getToken}>Connect</button>
+          <input
+            type="checkbox"
+            value={isCreator}
+            onChange={() => setisCreator(!isCreator)}
+          />
+          {`${isCreator}`}
+        </>
       )}
-      <input
-        type="text"
-        onChange={(e) => setparticipantName(e.target.value)}
-        value={participantName}
-      />
-      <button onClick={getToken}>Connect</button>
     </>
   );
 }
@@ -99,23 +122,44 @@ export default function App() {
 function MyVideoConference() {
   // `useTracks` returns all camera and screen share tracks. If a user
   // joins without a published camera track, a placeholder track is returned.
-  const tracks = useTracks(
-    [
-      { source: Track.Source.Camera, withPlaceholder: true },
-      { source: Track.Source.ScreenShare, withPlaceholder: false },
-    ],
-    { onlySubscribed: false }
-  );
+  // const tracks = useTracks(
+  //   [
+  //     { source: Track.Source.Camera, withPlaceholder: true },
+  //     { source: Track.Source.ScreenShare, withPlaceholder: false },
+  //   ],
+  //   { onlySubscribed: false }
+  // );
+  const participants = useParticipants();
+  console.log("all participants ", participants);
   return (
     <>
-      <GridLayout
-        tracks={tracks}
-        style={{ height: "calc(100vh - var(--lk-control-bar-height))" }}
-      >
-        {/* The GridLayout accepts zero or one child. The child is used
-      as a template to render all passed in tracks. */}
-        <ParticipantTile />
-      </GridLayout>
+      <div style={{ color: "black" }}>
+        {`participants : ${participants.length}`}
+        {participants.map((participant) => {
+          console.log("participants ", participant);
+        })}
+      </div>
+      <div data-lk-theme="default" style={{ height: "100vh" }}>
+        <VideoConference />
+        <ChatComponent />
+      </div>
     </>
+  );
+}
+
+function ChatComponent() {
+  const { chatMessages, send, isSending } = useChat();
+  console.log("chatMessages : ", chatMessages);
+  return (
+    <div>
+      {chatMessages.map((msg) => (
+        <div key={msg.timestamp} style={{ color: "black" }}>
+          {msg.from?.identity}: {msg.message}
+        </div>
+      ))}
+      <button disabled={isSending} onClick={() => send("Hello!")}>
+        Send Message
+      </button>
+    </div>
   );
 }
