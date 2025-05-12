@@ -6,16 +6,21 @@ import {
   useTracks,
   RoomContext,
   Chat,
+  VideoConference,
 } from "@livekit/components-react";
 import { Room, Track } from "livekit-client";
 import "@livekit/components-styles";
 import { useEffect, useState } from "react";
 
 const serverUrl = "wss://solo-9dwvrt7c.livekit.cloud";
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDY5MTQwNzcsImlzcyI6IkFQSVhvdEhaNGkzZkNWOCIsIm5iZiI6MTc0NjkwNjg3Nywic3ViIjoicXVpY2tzdGFydCB1c2VyIDdnbnp1aCIsInZpZGVvIjp7ImNhblB1Ymxpc2giOnRydWUsImNhblB1Ymxpc2hEYXRhIjp0cnVlLCJjYW5TdWJzY3JpYmUiOnRydWUsInJvb20iOiJxdWlja3N0YXJ0IHJvb20iLCJyb29tSm9pbiI6dHJ1ZX19.2oACsUCjIcBN0gFOCaJtD088vv8YpN2BFoofzK8pRuA";
+// const token =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDY5MTQwNzcsImlzcyI6IkFQSVhvdEhaNGkzZkNWOCIsIm5iZiI6MTc0NjkwNjg3Nywic3ViIjoicXVpY2tzdGFydCB1c2VyIDdnbnp1aCIsInZpZGVvIjp7ImNhblB1Ymxpc2giOnRydWUsImNhblB1Ymxpc2hEYXRhIjp0cnVlLCJjYW5TdWJzY3JpYmUiOnRydWUsInJvb20iOiJxdWlja3N0YXJ0IHJvb20iLCJyb29tSm9pbiI6dHJ1ZX19.2oACsUCjIcBN0gFOCaJtD088vv8YpN2BFoofzK8pRuA";
+// const token =
+//   "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6InF1aWNrc3RhcnQtcm9vbSJ9LCJpc3MiOiJBUElYb3RIWjRpM2ZDVjgiLCJleHAiOjE3NDcwNDIxMjYsIm5iZiI6MCwic3ViIjoicXVpY2tzdGFydC11c2VybmFtZSJ9._DRAWU5Cq7SNqSX738Mh3FGvXkQub3Y-kyFkRZeFyGg";
 
 export default function App() {
+  const [token, settoken] = useState("");
+  const [participantName, setparticipantName] = useState("");
   const [room] = useState(
     () =>
       new Room({
@@ -25,38 +30,69 @@ export default function App() {
         dynacast: true,
       })
   );
-  const connect = async () => {
-    await room.connect(serverUrl, token);
+  console.log("room : ", room);
+  const getToken = async () => {
+    if (participantName) {
+      try {
+        const res = await fetch("http://localhost:3001/getToken", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ participantName }),
+        });
+
+        console.log("Res 1 :", res);
+        const data = await res.json();
+        console.log("Res:", data.token);
+        settoken(data.token);
+      } catch (error) {
+        console.error("Error fetching token:", error);
+      }
+    }
   };
+
   // Connect to room
   useEffect(() => {
     let mounted = true;
     const connect = async () => {
-      if (mounted) {
-        await room.connect(serverUrl, token);
+      if (mounted && token) {
+        await room.connect(serverUrl, token, {
+          audio: true,
+          video: true,
+        });
       }
     };
+
     connect();
 
     return () => {
       mounted = false;
       room.disconnect();
     };
-  }, [room]);
+  }, [room, token]);
 
+  // useEffect(() => {
+  //   getToken();
+  // }, []);
   return (
-    <RoomContext.Provider value={room}>
-      <div data-lk-theme="default" style={{ height: "100vh" }}>
-        {/* Your custom component with basic video conferencing functionality. */}
-        <MyVideoConference />
-        {/* The RoomAudioRenderer takes care of room-wide audio for you. */}
-        <ControlBar />
-        <RoomAudioRenderer />
-        <button onClick={connect}>rejoin</button>
-        {/* Controls for the user to start/stop audio, video, and screen share tracks */}
-        <Chat />
-      </div>
-    </RoomContext.Provider>
+    <>
+      {(room.state === "connected" || room.state === "connecting") && (
+        <RoomContext.Provider value={room} connect={true}>
+          <div data-lk-theme="default" style={{ height: "100vh" }}>
+            {/* Your custom component with basic video conferencing functionality. */}
+            {/* <MyVideoConference /> */}
+            <VideoConference />
+          </div>
+        </RoomContext.Provider>
+      )}
+      <input
+        type="text"
+        onChange={(e) => setparticipantName(e.target.value)}
+        value={participantName}
+      />
+      <button onClick={getToken}>Connect</button>
+    </>
   );
 }
 
@@ -71,13 +107,15 @@ function MyVideoConference() {
     { onlySubscribed: false }
   );
   return (
-    <GridLayout
-      tracks={tracks}
-      style={{ height: "calc(100vh - var(--lk-control-bar-height))" }}
-    >
-      {/* The GridLayout accepts zero or one child. The child is used
+    <>
+      <GridLayout
+        tracks={tracks}
+        style={{ height: "calc(100vh - var(--lk-control-bar-height))" }}
+      >
+        {/* The GridLayout accepts zero or one child. The child is used
       as a template to render all passed in tracks. */}
-      <ParticipantTile />
-    </GridLayout>
+        <ParticipantTile />
+      </GridLayout>
+    </>
   );
 }
