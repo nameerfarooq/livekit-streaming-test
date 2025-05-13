@@ -148,7 +148,7 @@ function MyVideoConference() {
   //   { onlySubscribed: false }
   // );
   const participants = useParticipants();
-  const { chatMessages, send, isSending } = useChat();
+  // const { chatMessages, send, isSending } = useChat();
 
   console.log("all participants ", participants);
   return (
