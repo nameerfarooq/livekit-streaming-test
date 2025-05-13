@@ -9,6 +9,7 @@ import {
   VideoConference,
   useParticipants,
   useChat,
+  ChatEntry,
 } from "@livekit/components-react";
 import { Room, Track } from "livekit-client";
 import "@livekit/components-styles";
@@ -38,7 +39,7 @@ export default function App() {
   const getToken = async () => {
     if (participantName) {
       try {
-        const res = await fetch("http://localhost:3001/getToken", {
+        const res = await fetch("http://192.168.1.11:3001/getToken", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -107,6 +108,7 @@ export default function App() {
             value={participantName}
           />
           <button onClick={getToken}>Connect</button>
+          Creator :{" "}
           <input
             type="checkbox"
             value={isCreator}
@@ -130,6 +132,8 @@ function MyVideoConference() {
   //   { onlySubscribed: false }
   // );
   const participants = useParticipants();
+  const { chatMessages, send, isSending } = useChat();
+
   console.log("all participants ", participants);
   return (
     <>
@@ -137,10 +141,18 @@ function MyVideoConference() {
         {`participants : ${participants.length}`}
         {participants.map((participant) => {
           console.log("participants ", participant);
+          return <p>{participant.identity}</p>;
         })}
       </div>
       <div data-lk-theme="default" style={{ height: "100vh" }}>
-        <VideoConference />
+        <VideoConference>
+          {/* <Chat>
+            {chatMessages.map((msg) => (
+              <ChatEntry hideName={false} hideTimestamp={false} entry={msg} />
+            ))}
+          </Chat> */}
+        </VideoConference>
+
         <ChatComponent />
       </div>
     </>
@@ -149,17 +161,29 @@ function MyVideoConference() {
 
 function ChatComponent() {
   const { chatMessages, send, isSending } = useChat();
+  const [msg, setmsg] = useState("");
   console.log("chatMessages : ", chatMessages);
   return (
-    <div>
+    <div style={{ color: "black" }}>
+      <h2>Chat</h2>
+      <input type="text" value={msg} onChange={(e) => setmsg(e.target.value)} />
+      <button
+        style={{ backgroundColor: "blue", color: "white" }}
+        disabled={isSending}
+        onClick={() => {
+          send(msg);
+          setmsg("");
+        }}
+      >
+        Send Message
+      </button>
+      <br />
+      <br />
       {chatMessages.map((msg) => (
         <div key={msg.timestamp} style={{ color: "black" }}>
           {msg.from?.identity}: {msg.message}
         </div>
       ))}
-      <button disabled={isSending} onClick={() => send("Hello!")}>
-        Send Message
-      </button>
     </div>
   );
 }
