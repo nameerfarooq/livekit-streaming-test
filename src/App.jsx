@@ -39,13 +39,16 @@ export default function App() {
   const getToken = async () => {
     if (participantName) {
       try {
-        const res = await fetch("http://192.168.1.11:3001/getToken", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ participantName, isCreator }),
-        });
+        const res = await fetch(
+          "https://livekit-server-9b1d.onrender.com/getToken",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ participantName, isCreator }),
+          }
+        );
 
         console.log("Res 1 :", res);
         const data = await res.json();
