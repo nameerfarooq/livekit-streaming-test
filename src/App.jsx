@@ -33,6 +33,19 @@ export default function App() {
         adaptiveStream: true,
         // Enable automatic audio/video quality optimization
         dynacast: true,
+        videoCaptureDefaults: {
+          resolution: {
+            width: 1280,
+            height: 720,
+            frameRate: 30,
+          },
+        },
+        publishDefaults: {
+          videoEncoding: {
+            maxBitrate: 1_500_000,
+            maxFramerate: 30,
+          },
+        },
       })
   );
   console.log("room : ", room);
