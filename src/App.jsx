@@ -174,26 +174,108 @@ export default function App() {
 //   );
 // }
 function MyVideoConference() {
+  const creator = "nameer";
   const participants = useParticipants();
-  const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare]);
 
+  // const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare]);
+  const tracks = useTracks([
+    { source: Track.Source.Camera, withPlaceholder: true },
+    { source: Track.Source.ScreenShare, withPlaceholder: false },
+  ]);
+  const cameraTracks = tracks.filter(
+    (t) =>
+      t.source === Track.Source.Camera && t.participant.identity === creator
+  );
+  const screenShareTracks = tracks.filter(
+    (t) => t.source === Track.Source.ScreenShare
+  );
+
+  // return (
+  //   <div data-lk-theme="default" style={{}}>
+  //     <RoomAudioRenderer />
+
+  //     {/* Participant tiles (video) */}
+  //     {participants && participants?.length > 0 && (
+  //       <div style={{ flex: 1 }}>
+  //         <GridLayout
+  //           tracks={tracks}
+  //           style={{
+  //             backgroundColor: "#000",
+  //           }}
+  //         >
+  //           <ParticipantTile />
+  //         </GridLayout>
+  //       </div>
+  //     )}
+  //     {/* Controls */}
+  //     <div style={{ backgroundColor: "#111" }}>
+  //       <ControlBar />
+  //     </div>
+
+  //     {/* Chat */}
+  //     <div style={{ backgroundColor: "#fff", padding: "1rem", color: "black" }}>
+  //       <ChatComponent />
+  //     </div>
+  //   </div>
+  // );
   return (
-    <div data-lk-theme="default" style={{}}>
+    <div
+      data-lk-theme="default"
+      style={{ height: "100vh", position: "relative" }}
+    >
+      <div style={{ color: "black" }}>
+        {("participants : ", participants.length)}
+      </div>
       <RoomAudioRenderer />
 
-      {/* Participant tiles (video) */}
-      {participants && participants?.length > 0 && (
-        <div style={{ flex: 1 }}>
+      {screenShareTracks.length > 0 ? (
+        <>
+          {/* Large screen share */}
           <GridLayout
-            tracks={tracks}
+            tracks={screenShareTracks}
             style={{
+              height: "100%",
+              width: "100%",
               backgroundColor: "#000",
             }}
           >
             <ParticipantTile />
           </GridLayout>
-        </div>
+
+          {/* Small camera overlay */}
+          <div
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              width: "200px",
+              height: "150px",
+              zIndex: 10,
+              border: "2px solid white",
+              backgroundColor: "black",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            <GridLayout tracks={cameraTracks}>
+              <ParticipantTile />
+            </GridLayout>
+          </div>
+        </>
+      ) : (
+        // No screen share, show cameras in full layout
+        <GridLayout
+          tracks={cameraTracks}
+          style={{
+            height: "100%",
+            width: "100%",
+            backgroundColor: "#000",
+          }}
+        >
+          <ParticipantTile />
+        </GridLayout>
       )}
+
       {/* Controls */}
       <div style={{ backgroundColor: "#111" }}>
         <ControlBar />
