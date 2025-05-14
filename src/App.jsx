@@ -21,9 +21,7 @@ const serverUrl = "wss://solo-9dwvrt7c.livekit.cloud";
 //   "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6InF1aWNrc3RhcnQtcm9vbSJ9LCJpc3MiOiJBUElYb3RIWjRpM2ZDVjgiLCJleHAiOjE3NDcwNDIxMjYsIm5iZiI6MCwic3ViIjoicXVpY2tzdGFydC11c2VybmFtZSJ9._DRAWU5Cq7SNqSX738Mh3FGvXkQub3Y-kyFkRZeFyGg";
 
 export default function App() {
-  const [token, settoken] = useState(
-    "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6InF1aWNrc3RhcnQtcm9vbSIsImNhblB1Ymxpc2giOnRydWUsImNhblB1Ymxpc2hEYXRhIjp0cnVlfSwiaXNzIjoiQVBJWG90SFo0aTNmQ1Y4IiwiZXhwIjoxNzQ3MjMwNzU1LCJuYmYiOjAsInN1YiI6Im5hbWVlciJ9.qMNGVim-TPEoz1IYfTpPadXm987uPNsswT6vvjk3JVw"
-  );
+  const [token, settoken] = useState("");
   const [participantName, setparticipantName] = useState("aaaa");
   const [showVideo, setshowVideo] = useState(false);
   const [isCreator, setisCreator] = useState(true);
@@ -184,9 +182,9 @@ function MyVideoConference() {
         {("participants : ", participants.length)}
       </div> */}
       <div className="flex-[1] lg:flex-[3] flex flex-col relative min-h-[70vh]">
-        <div className="absolute top-[10px] left-[10px] z-[99] flex rounded-md bg-baseColor text-white py-[10px] px-[20px] gap-[5px] items-center">
+        <div className="absolute top-[10px] left-[10px] z-[99] flex rounded-md bg-darkGray opacity-85 text-white py-[5px] px-[10px] gap-[5px] items-center">
           <FaUserAlt color="#eda803" />
-          <p className="text-[18px] font-bold">{participants?.length}</p>
+          <p className="text-[14px] font-bold">{participants?.length}</p>
         </div>
         <RoomAudioRenderer />
 
@@ -249,7 +247,7 @@ function MyVideoConference() {
       </div>
 
       {/* Chat */}
-      <div className="md:flex-[1] w-full  ">
+      <div className="md:flex-[1] w-full  md:min-w-[300px]">
         <ChatComponent />
       </div>
     </div>
