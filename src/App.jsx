@@ -3,18 +3,16 @@ import {
   GridLayout,
   ParticipantTile,
   RoomAudioRenderer,
-  // useTracks,
   RoomContext,
-  Chat,
-  VideoConference,
   useParticipants,
   useChat,
-  ChatEntry,
   useTracks,
 } from "@livekit/components-react";
 import { Room, Track } from "livekit-client";
 import "@livekit/components-styles";
 import { useEffect, useState } from "react";
+import { IoIosSend } from "react-icons/io";
+import { FaUserAlt } from "react-icons/fa";
 
 const serverUrl = "wss://solo-9dwvrt7c.livekit.cloud";
 // const token =
@@ -23,16 +21,16 @@ const serverUrl = "wss://solo-9dwvrt7c.livekit.cloud";
 //   "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6InF1aWNrc3RhcnQtcm9vbSJ9LCJpc3MiOiJBUElYb3RIWjRpM2ZDVjgiLCJleHAiOjE3NDcwNDIxMjYsIm5iZiI6MCwic3ViIjoicXVpY2tzdGFydC11c2VybmFtZSJ9._DRAWU5Cq7SNqSX738Mh3FGvXkQub3Y-kyFkRZeFyGg";
 
 export default function App() {
-  const [token, settoken] = useState("");
+  const [token, settoken] = useState(
+    "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6InF1aWNrc3RhcnQtcm9vbSIsImNhblB1Ymxpc2giOnRydWUsImNhblB1Ymxpc2hEYXRhIjp0cnVlfSwiaXNzIjoiQVBJWG90SFo0aTNmQ1Y4IiwiZXhwIjoxNzQ3MjMwNzU1LCJuYmYiOjAsInN1YiI6Im5hbWVlciJ9.qMNGVim-TPEoz1IYfTpPadXm987uPNsswT6vvjk3JVw"
+  );
   const [participantName, setparticipantName] = useState("aaaa");
   const [showVideo, setshowVideo] = useState(false);
   const [isCreator, setisCreator] = useState(true);
   const [room] = useState(
     () =>
       new Room({
-        // Optimize video quality for each participant's screen
         adaptiveStream: true,
-        // Enable automatic audio/video quality optimization
         dynacast: true,
         videoCaptureDefaults: {
           resolution: {
@@ -49,7 +47,6 @@ export default function App() {
         },
       })
   );
-  console.log("room : ", room);
   const getToken = async () => {
     if (participantName) {
       try {
@@ -60,10 +57,7 @@ export default function App() {
           },
           body: JSON.stringify({ participantName, isCreator }),
         });
-
-        console.log("Res 1 :", res);
         const data = await res.json();
-        console.log("Res:", data.token);
         settoken(data.token);
       } catch (error) {
         console.error("Error fetching token:", error);
@@ -100,18 +94,12 @@ export default function App() {
     };
   }, [room, token]);
 
-  // useEffect(() => {
-  //   getToken();
-  // }, []);
   return (
     <>
       {showVideo ? (
         <RoomContext.Provider value={room} connect={true}>
-          <div data-lk-theme="default" style={{ height: "100vh" }}>
-            {/* Your custom component with basic video conferencing functionality. */}
+          <div data-lk-theme="default" className="w-full">
             <MyVideoConference />
-
-            {/* <VideoConference /> */}
           </div>
         </RoomContext.Provider>
       ) : (
@@ -176,8 +164,6 @@ export default function App() {
 function MyVideoConference() {
   const creator = "nameer";
   const participants = useParticipants();
-
-  // const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare]);
   const tracks = useTracks([
     { source: Track.Source.Camera, withPlaceholder: true },
     { source: Track.Source.ScreenShare, withPlaceholder: false },
@@ -189,174 +175,138 @@ function MyVideoConference() {
   const screenShareTracks = tracks.filter(
     (t) => t.source === Track.Source.ScreenShare
   );
-
-  // return (
-  //   <div data-lk-theme="default" style={{}}>
-  //     <RoomAudioRenderer />
-
-  //     {/* Participant tiles (video) */}
-  //     {participants && participants?.length > 0 && (
-  //       <div style={{ flex: 1 }}>
-  //         <GridLayout
-  //           tracks={tracks}
-  //           style={{
-  //             backgroundColor: "#000",
-  //           }}
-  //         >
-  //           <ParticipantTile />
-  //         </GridLayout>
-  //       </div>
-  //     )}
-  //     {/* Controls */}
-  //     <div style={{ backgroundColor: "#111" }}>
-  //       <ControlBar />
-  //     </div>
-
-  //     {/* Chat */}
-  //     <div style={{ backgroundColor: "#fff", padding: "1rem", color: "black" }}>
-  //       <ChatComponent />
-  //     </div>
-  //   </div>
-  // );
   return (
     <div
       data-lk-theme="default"
-      style={{ height: "100vh", position: "relative" }}
+      className="relative max-h-[70vh] flex flex-wrap lg:flex-nowrap  gap-2 w-screen "
     >
-      <div style={{ color: "black" }}>
+      {/* <div style={{ color: "black" }}>
         {("participants : ", participants.length)}
-      </div>
-      <RoomAudioRenderer />
+      </div> */}
+      <div className="flex-[1] lg:flex-[3] flex flex-col relative min-h-[70vh]">
+        <div className="absolute top-[10px] left-[10px] z-[99] flex rounded-md bg-baseColor text-white py-[10px] px-[20px] gap-[5px] items-center">
+          <FaUserAlt color="#eda803" />
+          <p className="text-[18px] font-bold">{participants?.length}</p>
+        </div>
+        <RoomAudioRenderer />
 
-      {screenShareTracks.length > 0 ? (
-        <>
-          {/* Large screen share */}
+        {screenShareTracks.length > 0 ? (
+          <>
+            {/* Large screen share */}
+            <GridLayout
+              tracks={screenShareTracks}
+              style={{
+                backgroundColor: "#142028",
+              }}
+            >
+              <ParticipantTile />
+            </GridLayout>
+
+            {/* Small camera overlay */}
+            <div
+              // style={{
+              //   position: "absolute",
+              //   top: 10,
+              //   right: 10,
+              //   width: "200px",
+              //   height: "150px",
+              //   zIndex: 10,
+              //   border: "2px solid #eda803",
+              //   backgroundColor: "#142028",
+              //   borderRadius: "8px",
+              //   overflow: "hidden",
+              // }}
+              className="overflow-hidden rounded-md border-2 border-[#eda803] z-10 hidden sm:block h-[50px] sm:h-[150px] w-[50px] sm:w-[200px] absolute right-[10px] top-[10px]"
+            >
+              <GridLayout
+                style={{
+                  backgroundColor: "#142028",
+                }}
+                tracks={cameraTracks}
+              >
+                <ParticipantTile />
+              </GridLayout>
+            </div>
+          </>
+        ) : (
+          // No screen share, show cameras in full layout
           <GridLayout
-            tracks={screenShareTracks}
+            tracks={cameraTracks}
             style={{
               height: "100%",
               width: "100%",
-              backgroundColor: "#000",
+              backgroundColor: "#142028",
             }}
           >
             <ParticipantTile />
           </GridLayout>
+        )}
 
-          {/* Small camera overlay */}
-          <div
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              width: "200px",
-              height: "150px",
-              zIndex: 10,
-              border: "2px solid white",
-              backgroundColor: "black",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
-            <GridLayout tracks={cameraTracks}>
-              <ParticipantTile />
-            </GridLayout>
-          </div>
-        </>
-      ) : (
-        // No screen share, show cameras in full layout
-        <GridLayout
-          tracks={cameraTracks}
-          style={{
-            height: "100%",
-            width: "100%",
-            backgroundColor: "#000",
-          }}
-        >
-          <ParticipantTile />
-        </GridLayout>
-      )}
-
-      {/* Controls */}
-      <div style={{ backgroundColor: "#111" }}>
-        <ControlBar />
+        {/* Controls */}
+        <div className="bg-baseColor">
+          <ControlBar />
+        </div>
       </div>
 
       {/* Chat */}
-      <div style={{ backgroundColor: "#fff", padding: "1rem", color: "black" }}>
+      <div className="md:flex-[1] w-full  ">
         <ChatComponent />
       </div>
     </div>
   );
 }
 
-// function ChatComponent() {
-//   const { chatMessages, send, isSending } = useChat();
-//   const [msg, setmsg] = useState("");
-//   console.log("chatMessages : ", chatMessages);
-//   return (
-//     <div style={{ color: "black" }}>
-//       <h2>Chat</h2>
-//       <input type="text" value={msg} onChange={(e) => setmsg(e.target.value)} />
-//       <button
-//         style={{ backgroundColor: "blue", color: "white" }}
-//         disabled={isSending}
-//         onClick={() => {
-//           send(msg);
-//           setmsg("");
-//         }}
-//       >
-//         Send Message
-//       </button>
-//       <br />
-//       <br />
-//       {chatMessages.map((msg) => (
-//         <div key={msg.timestamp} style={{ color: "black" }}>
-//           {msg.from?.identity}: {msg.message}
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
-
 function ChatComponent() {
+  const creator = "nameer";
+
   const { chatMessages, send, isSending } = useChat();
   const [msg, setmsg] = useState("");
 
   return (
-    <div>
-      <h2>Chat</h2>
-      <input
-        type="text"
-        value={msg}
-        placeholder="Type your message..."
-        onChange={(e) => setmsg(e.target.value)}
-        style={{ width: "70%", marginRight: "10px" }}
-      />
-      <button
-        disabled={isSending}
-        onClick={() => {
-          if (msg.trim()) {
-            send(msg.trim());
-            setmsg("");
-          }
-        }}
-        style={{ backgroundColor: "blue", color: "white" }}
-      >
-        Send
-      </button>
-
-      <div style={{ marginTop: "1rem", maxHeight: "200px", overflowY: "auto" }}>
-        {chatMessages?.map((entry) => (
-          <div key={entry.timestamp} style={{ marginBottom: "8px" }}>
-            <strong>
-              {entry.from?.name || entry.from?.identity || "Unknown"}:
-            </strong>{" "}
-            {entry.message}
-            <div style={{ fontSize: "0.8em", color: "#666" }}>
-              {new Date(entry.timestamp).toLocaleTimeString()}
+    <div className="rounded-md text-white bg-baseColor bg-opacity-75 backdrop-blur-3xl flex flex-col gap-2">
+      <div className="flex font-bold text-[20px]  p-[10px] bg-darkGray">
+        Live Chat
+      </div>
+      <div className="flex flex-col gap-2 p-[15px] h-[53vh] overflow-auto">
+        {chatMessages?.map((entry, index) => (
+          <div key={index} className="flex w-full">
+            <div className="flex flex-col bg-lightGray min-w-[280px] max-w-[400px] rounded-md px-[15px] pt-[10px] pb-[25px] relative">
+              <p className="font-bold text-[18px] text-yellow2">
+                {entry.from?.name || entry.from?.identity || "Unknown"}{" "}
+                {(entry.from?.name || entry.from?.identity) === creator && (
+                  <span className="text-[14px] text-white">(Creator)</span>
+                )}
+              </p>
+              <p className="text-[16px] break-words overflow-wrap break-word whitespace-pre-wrap">
+                {entry.message}
+              </p>
+              <p className="text-[12px] absolute bottom-[2px] right-[5px] text-disableTextColor">
+                {new Date(entry.timestamp).toLocaleTimeString()}
+              </p>
             </div>
           </div>
         ))}
+      </div>
+      <div className="flex gap-2 px-[15px] py-[15px]">
+        <input
+          type="text"
+          value={msg}
+          placeholder="Type your message..."
+          onChange={(e) => setmsg(e.target.value)}
+          className="w-full bg-darkGray rounded-md p-[10px] outline-none color-white"
+        />
+        <button
+          disabled={isSending}
+          onClick={() => {
+            if (msg.trim()) {
+              send(msg.trim());
+              setmsg("");
+            }
+          }}
+          className="flex items-center justify-center w-[50px] h-[50px] cursor-pointer rounded-md outline-none bg-darkGray"
+        >
+          <IoIosSend color="#eda803" size={24} />
+        </button>
       </div>
     </div>
   );
