@@ -10,6 +10,7 @@ import {
   useParticipants,
   useChat,
   ChatEntry,
+  useTracks,
 } from "@livekit/components-react";
 import { Room, Track } from "livekit-client";
 import "@livekit/components-styles";
@@ -23,9 +24,9 @@ const serverUrl = "wss://solo-9dwvrt7c.livekit.cloud";
 
 export default function App() {
   const [token, settoken] = useState("");
-  const [participantName, setparticipantName] = useState("");
+  const [participantName, setparticipantName] = useState("aaaa");
   const [showVideo, setshowVideo] = useState(false);
-  const [isCreator, setisCreator] = useState(false);
+  const [isCreator, setisCreator] = useState(true);
   const [room] = useState(
     () =>
       new Room({
@@ -52,16 +53,13 @@ export default function App() {
   const getToken = async () => {
     if (participantName) {
       try {
-        const res = await fetch(
-          "https://livekit-server-9b1d.onrender.com/getToken",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ participantName, isCreator }),
-          }
-        );
+        const res = await fetch("http://localhost:3001/getToken", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ participantName, isCreator }),
+        });
 
         console.log("Res 1 :", res);
         const data = await res.json();
@@ -112,6 +110,7 @@ export default function App() {
           <div data-lk-theme="default" style={{ height: "100vh" }}>
             {/* Your custom component with basic video conferencing functionality. */}
             <MyVideoConference />
+
             {/* <VideoConference /> */}
           </div>
         </RoomContext.Provider>
@@ -137,69 +136,146 @@ export default function App() {
   );
 }
 
+// function MyVideoConference() {
+//   // `useTracks` returns all camera and screen share tracks. If a user
+//   // joins without a published camera track, a placeholder track is returned.
+//   // const tracks = useTracks(
+//   //   [
+//   //     { source: Track.Source.Camera, withPlaceholder: true },
+//   //     { source: Track.Source.ScreenShare, withPlaceholder: false },
+//   //   ],
+//   //   { onlySubscribed: false }
+//   // );
+//   const participants = useParticipants();
+//   // const { chatMessages, send, isSending } = useChat();
+
+//   console.log("all participants ", participants);
+//   return (
+//     <>
+//       <div style={{ color: "black" }}>
+//         {`participants : ${participants.length}`}
+//         {participants.map((participant) => {
+//           console.log("participants ", participant);
+//           return <p>{participant.identity}</p>;
+//         })}
+//       </div>
+//       <div data-lk-theme="default" style={{ height: "100vh" }}>
+//         <VideoConference>
+//           {/* <Chat>
+//             {chatMessages.map((msg) => (
+//               <ChatEntry hideName={false} hideTimestamp={false} entry={msg} />
+//             ))}
+//           </Chat> */}
+//         </VideoConference>
+
+//         <ChatComponent />
+//       </div>
+//     </>
+//   );
+// }
 function MyVideoConference() {
-  // `useTracks` returns all camera and screen share tracks. If a user
-  // joins without a published camera track, a placeholder track is returned.
-  // const tracks = useTracks(
-  //   [
-  //     { source: Track.Source.Camera, withPlaceholder: true },
-  //     { source: Track.Source.ScreenShare, withPlaceholder: false },
-  //   ],
-  //   { onlySubscribed: false }
-  // );
   const participants = useParticipants();
-  // const { chatMessages, send, isSending } = useChat();
+  const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare]);
 
-  console.log("all participants ", participants);
   return (
-    <>
-      <div style={{ color: "black" }}>
-        {`participants : ${participants.length}`}
-        {participants.map((participant) => {
-          console.log("participants ", participant);
-          return <p>{participant.identity}</p>;
-        })}
-      </div>
-      <div data-lk-theme="default" style={{ height: "100vh" }}>
-        <VideoConference>
-          {/* <Chat>
-            {chatMessages.map((msg) => (
-              <ChatEntry hideName={false} hideTimestamp={false} entry={msg} />
-            ))}
-          </Chat> */}
-        </VideoConference>
+    <div data-lk-theme="default" style={{}}>
+      <RoomAudioRenderer />
 
+      {/* Participant tiles (video) */}
+      {participants && participants?.length > 0 && (
+        <div style={{ flex: 1 }}>
+          <GridLayout
+            tracks={tracks}
+            style={{
+              backgroundColor: "#000",
+            }}
+          >
+            <ParticipantTile />
+          </GridLayout>
+        </div>
+      )}
+      {/* Controls */}
+      <div style={{ backgroundColor: "#111" }}>
+        <ControlBar />
+      </div>
+
+      {/* Chat */}
+      <div style={{ backgroundColor: "#fff", padding: "1rem", color: "black" }}>
         <ChatComponent />
       </div>
-    </>
+    </div>
   );
 }
+
+// function ChatComponent() {
+//   const { chatMessages, send, isSending } = useChat();
+//   const [msg, setmsg] = useState("");
+//   console.log("chatMessages : ", chatMessages);
+//   return (
+//     <div style={{ color: "black" }}>
+//       <h2>Chat</h2>
+//       <input type="text" value={msg} onChange={(e) => setmsg(e.target.value)} />
+//       <button
+//         style={{ backgroundColor: "blue", color: "white" }}
+//         disabled={isSending}
+//         onClick={() => {
+//           send(msg);
+//           setmsg("");
+//         }}
+//       >
+//         Send Message
+//       </button>
+//       <br />
+//       <br />
+//       {chatMessages.map((msg) => (
+//         <div key={msg.timestamp} style={{ color: "black" }}>
+//           {msg.from?.identity}: {msg.message}
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
 
 function ChatComponent() {
   const { chatMessages, send, isSending } = useChat();
   const [msg, setmsg] = useState("");
-  console.log("chatMessages : ", chatMessages);
+
   return (
-    <div style={{ color: "black" }}>
+    <div>
       <h2>Chat</h2>
-      <input type="text" value={msg} onChange={(e) => setmsg(e.target.value)} />
+      <input
+        type="text"
+        value={msg}
+        placeholder="Type your message..."
+        onChange={(e) => setmsg(e.target.value)}
+        style={{ width: "70%", marginRight: "10px" }}
+      />
       <button
-        style={{ backgroundColor: "blue", color: "white" }}
         disabled={isSending}
         onClick={() => {
-          send(msg);
-          setmsg("");
+          if (msg.trim()) {
+            send(msg.trim());
+            setmsg("");
+          }
         }}
+        style={{ backgroundColor: "blue", color: "white" }}
       >
-        Send Message
+        Send
       </button>
-      <br />
-      <br />
-      {chatMessages.map((msg) => (
-        <div key={msg.timestamp} style={{ color: "black" }}>
-          {msg.from?.identity}: {msg.message}
-        </div>
-      ))}
+
+      <div style={{ marginTop: "1rem", maxHeight: "200px", overflowY: "auto" }}>
+        {chatMessages?.map((entry) => (
+          <div key={entry.timestamp} style={{ marginBottom: "8px" }}>
+            <strong>
+              {entry.from?.name || entry.from?.identity || "Unknown"}:
+            </strong>{" "}
+            {entry.message}
+            <div style={{ fontSize: "0.8em", color: "#666" }}>
+              {new Date(entry.timestamp).toLocaleTimeString()}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
