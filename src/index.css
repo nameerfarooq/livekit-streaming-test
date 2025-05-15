@@ -20,9 +20,21 @@
 .lk-button {
   background-color: #0b1217 !important;
 }
-.lk-disconnect-button {
-}
+
 .lk-start-audio-button {
   background-color: #eda803 !important;
   color: black !important;
+}
+
+.custom-scrollbar {
+  overflow-y: scroll;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #23323c;
+  border-radius: 8px;
 }
