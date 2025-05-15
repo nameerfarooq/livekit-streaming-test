@@ -54,7 +54,11 @@ export default function App() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ participantName, isCreator }),
+          body: JSON.stringify({
+            participantName,
+            isCreator,
+            roomName: "testingroom",
+          }),
         });
         const data = await res.json();
         settoken(data.token);
